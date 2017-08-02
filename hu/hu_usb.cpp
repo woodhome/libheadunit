@@ -177,14 +177,18 @@ int HUTransportStreamUSB::Stop() {
 
   if (abort_usb_thread_pipe_write_fd >= 0)
   {
-    write(abort_usb_thread_pipe_write_fd, &abort_usb_thread_pipe_write_fd, 1);
+    if(write(abort_usb_thread_pipe_write_fd, &abort_usb_thread_pipe_write_fd, 1) < 0) {
+        loge("Error when writing to error_write_fd");
+    }
   }
 
   if (usb_recv_thread.joinable())
   {
     usb_recv_thread.join();
   }
-  close(abort_usb_thread_pipe_write_fd);
+  if(close(abort_usb_thread_pipe_write_fd) < 0) {
+      loge("Error when closing abort_usb_thread_pipe_write_fd");
+  }
   close(abort_usb_thread_pipe_read_fd);
   abort_usb_thread_pipe_write_fd = -1;
   abort_usb_thread_pipe_read_fd = -1;
@@ -246,7 +250,10 @@ void HUTransportStreamUSB::usb_recv_thread_main()
 
   //Wake up the reader if required
   int errData = -1;
-  write(error_write_fd, &errData, sizeof(errData));
+
+  if(write(error_write_fd, &errData, sizeof(errData)) < 0) {
+      loge("Error when writing to error_write_fd");
+  }
 
 }
 
@@ -281,7 +288,9 @@ void HUTransportStreamUSB::libusb_callback(libusb_transfer *transfer)
       if (ret < 0)
       {
         loge("libusb_callback: write failed");
-        write(abort_usb_thread_pipe_write_fd, &abort_usb_thread_pipe_write_fd, 1);
+        if(write(abort_usb_thread_pipe_write_fd, &abort_usb_thread_pipe_write_fd, 1) < 0) {
+            loge("Error when writing to abort_usb_thread_pipe_write_fd");
+        }
       }
       else
       {
@@ -292,7 +301,9 @@ void HUTransportStreamUSB::libusb_callback(libusb_transfer *transfer)
   else
   {
     loge("libusb_callback: abort");
-    write(abort_usb_thread_pipe_write_fd, &abort_usb_thread_pipe_write_fd, 1);
+    if(write(abort_usb_thread_pipe_write_fd, &abort_usb_thread_pipe_write_fd, 1) < 0) {
+        loge("Error when writing to abort_usb_thread_pipe_write_fd");
+    }
   }
   libusb_free_transfer(transfer);
 }
@@ -310,7 +321,9 @@ void HUTransportStreamUSB::libusb_callback_send(libusb_transfer *transfer)
   if (recv_last_status != LIBUSB_TRANSFER_COMPLETED)
   {
     loge("libusb_callback: abort");
-    write(abort_usb_thread_pipe_write_fd, &abort_usb_thread_pipe_write_fd, 1);
+    if(write(abort_usb_thread_pipe_write_fd, &abort_usb_thread_pipe_write_fd, 1) < 0){
+        loge("Error when writing to abort_usb_thread_pipe_write_fd");
+    }
   }
   free(transfer->buffer);
   libusb_free_transfer(transfer);
