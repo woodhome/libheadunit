@@ -50,7 +50,7 @@ protected:
   int errorfd = -1;
 public:
   virtual ~HUTransportStream() {}
-  inline HUTransportStream() {}
+  inline HUTransportStream(std::map<std::string, std::string>) {}
   virtual int Start(bool waitForDevice) = 0;
   virtual int Stop() = 0;
   virtual int Write(const byte* buf, int len, int tmo) = 0;

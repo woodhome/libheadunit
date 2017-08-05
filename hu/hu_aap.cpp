@@ -72,21 +72,23 @@
       default_settings["available_while_in_call"] = "0";//bool
       default_settings["transport_type"] = "usb"; // "usb" or "network"
       default_settings["network_address"] = "127.0.0.1";
+      default_settings["wifi_direct"] = "0";
 
       settings.insert(default_settings.begin(), default_settings.end());
   }
 
 
   int HUServer::ihu_tra_start (bool waitForDevice) {
-
+    std::map<std::string, std::string> conf;
     if (settings["transport_type"] == "network") {
+      conf["network_address"] = settings["network_address"];
       logd ("AA over Wifi");
-      transport = std::unique_ptr<HUTransportStream>(new HUTransportStreamTCP());
+      transport = std::unique_ptr<HUTransportStream>(new HUTransportStreamTCP(conf));
       iaap_tra_recv_tmo = 1000;
       iaap_tra_send_tmo = 2000;
     }
     else if (settings["transport_type"] == "usb") {
-      transport = std::unique_ptr<HUTransportStream>(new HUTransportStreamUSB());
+      transport = std::unique_ptr<HUTransportStream>(new HUTransportStreamUSB(conf));
       logd ("AA over USB");
       iaap_tra_recv_tmo = 0;//100;
       iaap_tra_send_tmo = 2500;
